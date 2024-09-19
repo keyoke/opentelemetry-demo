@@ -20,6 +20,10 @@ const {
 } = typeof window !== 'undefined' ? window.ENV : {};
 
 const FrontendTracer = (collectorString: string) => {
+  // If we are not provided a collector string, we should not initialize the tracer
+  if(!collectorString)
+    return;
+
   let resource = new Resource({
     [SemanticResourceAttributes.SERVICE_NAME]: NEXT_PUBLIC_OTEL_SERVICE_NAME,
   });
