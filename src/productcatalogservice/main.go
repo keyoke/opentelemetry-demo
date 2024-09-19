@@ -111,6 +111,13 @@ func initMeterProvider() *sdkmetric.MeterProvider {
 	return mp
 }
 
+func LogrusFields(span trace.Span) logrus.Fields {
+	return logrus.Fields{
+		"span_id":  span.SpanContext().SpanID().String(),
+		"trace_id": span.SpanContext().TraceID().String(),
+	}
+}
+
 // https://stackoverflow.com/questions/8270441/go-language-how-detect-file-changing
 func watchFile(filePath string) error {
 	initialStat, err := os.Stat(filePath)
@@ -269,6 +276,8 @@ func (p *productCatalog) GetProduct(ctx context.Context, req *pb.GetProductReque
 	span.SetAttributes(
 		attribute.String("app.product.id", req.Id),
 	)
+
+	log.WithFields(LogrusFields(span)).Infof("[GetProduct] product.id=%qq", req.Id)
 
 	// GetProduct will fail on a specific product when feature flag is enabled
 	if p.checkProductFailure(ctx, req.Id) {
