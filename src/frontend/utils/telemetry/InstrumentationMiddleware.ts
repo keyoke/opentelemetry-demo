@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { NextApiHandler } from 'next';
-import {context, Exception, Span, SpanStatusCode, trace} from '@opentelemetry/api';
+import { context, Exception, Span, SpanStatusCode, trace } from '@opentelemetry/api';
 import { SemanticAttributes } from '@opentelemetry/semantic-conventions';
 import { metrics } from '@opentelemetry/api';
 
@@ -16,18 +16,33 @@ const InstrumentationMiddleware = (handler: NextApiHandler): NextApiHandler => {
 
     const span = trace.getSpan(context.active()) as Span;
 
-    let httpStatus = 200;
-    try {
-      await runWithSpan(span, async () => handler(request, response));
-      httpStatus = response.statusCode;
-    } catch (error) {
-      span.recordException(error as Exception);
-      span.setStatus({ code: SpanStatusCode.ERROR });
-      httpStatus = 500;
-      throw error;
-    } finally {
-      requestCounter.add(1, { method, target, status: httpStatus });
-      span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, httpStatus);
+    // When OTEL Auto instrumentation is disabled we do not get an Active Span, therefore create a new Span
+    if (span) {
+      let httpStatus = 200;
+      try {
+        await runWithSpan(span, async () => handler(request, response));
+        httpStatus = response.statusCode;
+      } catch (error) {
+        span.recordException(error as Exception);
+        span.setStatus({ code: SpanStatusCode.ERROR });
+        httpStatus = 500;
+        throw error;
+      } finally {
+        requestCounter.add(1, { method, target, status: httpStatus });
+        span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, httpStatus);
+      }
+    }
+    else {
+      let httpStatus = 200;
+      try {
+        await handler(request, response);
+        httpStatus = response.statusCode;
+      } catch (error) {
+        httpStatus = 500;
+        throw error;
+      } finally {
+        requestCounter.add(1, { method, target, status: httpStatus });
+      }
     }
   };
 };
