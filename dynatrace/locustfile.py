@@ -115,7 +115,12 @@ class WebsiteBrowserUser(PlaywrightUser):
         try:
             page.on("console", lambda msg: print(msg.text))
             await page.route('**/*', add_baggage_header)
-            await page.goto("/cart", wait_until="domcontentloaded")
+            await page.goto("/", wait_until="domcontentloaded")
+            
+            # Open the Shopping cart flyout
+            await page.click('a[data-cy="cart-icon"]')
+            # Click the go to shopping cart button
+            await page.click('button:has-text("Go to Shopping Cart")')
             
             # select a random user from the people.json file and checkout
             checkout_details = random.choice(people)
@@ -134,15 +139,27 @@ class WebsiteBrowserUser(PlaywrightUser):
             await page.route('**/*', add_baggage_header)
             await page.goto("/", wait_until="domcontentloaded")
 
-            # Get a random product link and click on it
-            product_id = random.choice(products)
-            await page.click(f"a[href='/product/{product_id}']")
-            
-            # Add a random number of products to the cart
-            product_count = random.choice([1, 2, 3, 4, 5, 10])
-            await page.select_option('select[data-cy="product-quantity"]', value=str(product_count))
+            # Add 1-4 products to the cart
+            for i in range(random.choice([1, 2, 3, 4])):
+                # Get a random product link and click on it
+                product_id = random.choice(products)
+                await page.click(f"a[href='/product/{product_id}']")
+                
+                # Add a random number of products to the cart
+                product_count = random.choice([1, 2, 3, 4, 5, 10])
+                await page.select_option('select[data-cy="product-quantity"]', value=str(product_count))
 
-            await page.click('button:has-text("Add To Cart")')
+                # add the product to our cart
+                await page.click('button:has-text("Add To Cart")')
+
+                # Continue Shopping
+                await page.click('button:has-text("Continue Shopping")')
+
+            # Open the Shopping cart flyout
+            await page.click('a[data-cy="cart-icon"]')
+            # Click the go to shopping cart button
+            await page.click('button:has-text("Go to Shopping Cart")')
+           
             await page.wait_for_timeout(2000)  # giving the browser time to export the traces
         except Exception as e:
             traceback.print_exc(file=sys.stdout)
@@ -155,17 +172,27 @@ class WebsiteBrowserUser(PlaywrightUser):
             page.on("console", lambda msg: print(msg.text))
             await page.route('**/*', add_baggage_header)
             await page.goto("/", wait_until="domcontentloaded")
-            
-            # Get a random product link and click on it
-            product_id = random.choice(products)
-            await page.click(f"a[href='/product/{product_id}']")
-            
-            # Add a random number of products to the cart
-            product_count = random.choice([1, 2, 3, 4, 5, 10])
-            await page.select_option('select[data-cy="product-quantity"]', value=str(product_count))
 
-            # add the product to our cart
-            await page.click('button:has-text("Add To Cart")')
+            # Add 1-4 products to the cart
+            for i in range(random.choice([1, 2, 3, 4])):            
+                # Get a random product link and click on it
+                product_id = random.choice(products)
+                await page.click(f"a[href='/product/{product_id}']")
+                
+                # Add a random number of products to the cart
+                product_count = random.choice([1, 2, 3, 4, 5, 10])
+                await page.select_option('select[data-cy="product-quantity"]', value=str(product_count))
+
+                # add the product to our cart
+                await page.click('button:has-text("Add To Cart")')
+
+                # Continue Shopping
+                await page.click('button:has-text("Continue Shopping")')
+
+            # Open the Shopping cart flyout
+            await page.click('a[data-cy="cart-icon"]')
+            # Click the go to shopping cart button
+            await page.click('button:has-text("Go to Shopping Cart")')
 
             # select a random user from the people.json file and checkout
             checkout_details = random.choice(people)
