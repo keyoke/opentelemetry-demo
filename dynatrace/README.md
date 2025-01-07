@@ -61,5 +61,7 @@ PRODUCT_CATALOG_DOCKERFILE=./dynatrace/Dockerfile.productcatalogservice
 
 LOAD_GENERATOR_DOCKERFILE=./dynatrace/Dockerfile.loadgenerator
 
+IMAGE_PROVIDER_DOCKERFILE=./dynatrace/Dockerfile.imageprovider
+
 ## Build the opentelemtery-demo docker images
 $ make build-and-push

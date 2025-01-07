@@ -28,9 +28,13 @@ http {
 
         root /static;
         gzip_static on;
-
-        location /status {
+        
+        location /nginx/status {
             stub_status;
+            access_log off;
+            allow 127.0.0.1;
+            allow ::1;
+            deny all;
         }
     }
 }
