@@ -4,6 +4,15 @@
 using Accounting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using CloudNative.CloudEvents.AspNetCore;
+using Microsoft.AspNetCore.HttpLogging;
+using Dapr;
+using Dapr.Client;
+using Oteldemo;
 
 Console.WriteLine("Accounting service started");
 
@@ -11,14 +20,50 @@ Environment.GetEnvironmentVariables()
     .FilterRelevant()
     .OutputInOrder();
 
-var host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices(services =>
+var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Services.AddHttpLogging(httpLoggingOptions =>
+{
+    httpLoggingOptions.LoggingFields =
+        HttpLoggingFields.RequestPath |
+        HttpLoggingFields.RequestMethod |
+        HttpLoggingFields.ResponseStatusCode |
+        HttpLoggingFields.RequestBody;
+});
+
+var app = builder.Build();
+
+app.UseHttpLogging();
+app.UseRouting();
+
+// Dapr configurations
+app.UseCloudEvents();
+
+app.MapSubscribeHandler();
+
+app.MapPost("/orders", [Topic("pubsub", "orders")] (ILogger<Program> logger, [FromBody] Stream stream) =>
+{
+    if (stream is not null &&
+        stream is MemoryStream)
     {
-        services.AddSingleton<Consumer>();
-    })
-    .Build();
+        var bytes = ((MemoryStream)stream).ToArray();
+        if (bytes.Length > 0)
+        {
+            try
+            {
+                var order = OrderResult.Parser.ParseFrom(bytes);
 
-var consumer = host.Services.GetRequiredService<Consumer>();
-consumer.StartListening();
+                Log.OrderReceivedMessage(logger, order);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Order parsing failed:");
+            }
+            return Results.Ok();
+        }
+    }
 
-host.Run();
+    return Results.BadRequest();
+});
+app.Run();

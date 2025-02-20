@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -33,7 +32,7 @@ builder.Logging
 
 builder.Services.AddSingleton<ICartStore>(x=>
 {
-    var store = new ValkeyCartStore(x.GetRequiredService<ILogger<ValkeyCartStore>>(), valkeyAddress);
+    var store = new DaprStateManagementCartStore(x.GetRequiredService<ILogger<DaprStateManagementCartStore>>(), "cart-state-store");
     store.Initialize();
     return store;
 });
@@ -45,13 +44,14 @@ builder.Services.AddSingleton<IFeatureClient>(x => {
     return client;
 });
 
-builder.Services.AddSingleton(x =>
+// TODO - Fault injection for valkey via Dapr
+/* builder.Services.AddSingleton(x =>
     new CartService(
         x.GetRequiredService<ICartStore>(),
-        new ValkeyCartStore(x.GetRequiredService<ILogger<ValkeyCartStore>>(), "badhost:1234"),
+        new DaprStateManagementCartStore(x.GetRequiredService<ILogger<DaprStateManagementCartStore>>(),"bad-cart-state-store")
         x.GetRequiredService<IFeatureClient>()
 ));
-
+ */
 
 Action<ResourceBuilder> appResourceBuilder =
     resource => resource
@@ -81,9 +81,6 @@ builder.Services.AddGrpcHealthChecks()
     .AddCheck("Sample", () => HealthCheckResult.Healthy());
 
 var app = builder.Build();
-
-var ValkeyCartStore = (ValkeyCartStore) app.Services.GetRequiredService<ICartStore>();
-app.Services.GetRequiredService<StackExchangeRedisInstrumentation>().AddConnection(ValkeyCartStore.GetConnection());
 
 app.MapGrpcService<CartService>();
 app.MapGrpcHealthChecksService();

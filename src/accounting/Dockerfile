@@ -32,4 +32,6 @@ RUN chown app "/var/log/opentelemetry/dotnet"
 RUN chown app "/app/instrument.sh"
 USER app
 
+EXPOSE ${ACCOUNTING_PORT}
+
 ENTRYPOINT ["./instrument.sh", "dotnet", "Accounting.dll"]
