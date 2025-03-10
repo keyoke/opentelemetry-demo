@@ -9,8 +9,8 @@ Optional changes which are required to run both Otel Collector and Dynatrace One
 ## Checkout Service
 
 - Dynatrace Support limited to official, stable Go releases - https://docs.dynatrace.com/docs/ingest-from/technology-support/application-software/go/support/go-known-limitations#go-official-stable-releases
-- Applications built with -buildmode=pie option and CGO disabled aren't supported by Dynatrace - https://docs.dynatrace.com/docs/ingest-from/technology-support/application-software/go/support/go-known-limitations#applications-built-with-buildmodepie-option-and-cgo-disabled-arent-supported
 - Dynatrace Support for statically linked binaries - https://docs.dynatrace.com/docs/ingest-from/technology-support/application-software/go/support/go-known-limitations#static-monitoring
+- Go compiler bug on Alpine Linux requires us to add '-linkmode=external' to the existing ldflags - https://docs.dynatrace.com/docs/ingest-from/technology-support/application-software/go/support/go-known-limitations#support-for-musl-libc
 
 ## Frontend
 
@@ -35,9 +35,8 @@ Optional changes which are required to run both Otel Collector and Dynatrace One
 ## Productcatalog Service
 
 - Dynatrace Support limited to official, stable Go releases - https://docs.dynatrace.com/docs/ingest-from/technology-support/application-software/go/support/go-known-limitations#go-official-stable-releases
-- Applications built with -buildmode=pie option and CGO disabled aren't supported by Dynatrace - https://docs.dynatrace.com/docs/ingest-from/technology-support/application-software/go/support/go-known-limitations#applications-built-with-buildmodepie-option-and-cgo-disabled-arent-supported
 - Dynatrace Support for statically linked binaries - https://docs.dynatrace.com/docs/ingest-from/technology-support/application-software/go/support/go-known-limitations#static-monitoring
-
+- Go compiler bug on Alpine Linux requires us to add '-linkmode=external' to the existing ldflags - https://docs.dynatrace.com/docs/ingest-from/technology-support/application-software/go/support/go-known-limitations#support-for-musl-libc
 
 ## Update the local '.env.override' file
 
