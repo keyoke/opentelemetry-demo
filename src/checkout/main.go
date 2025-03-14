@@ -511,7 +511,7 @@ func (cs *checkout) sendToPostProcessor(ctx context.Context, result *pb.OrderRes
 		panic(err)
 	}
 
-	fmt.Printf("Published order: %#v", message)
+	log.Infof("Published order: %#v", message)
 
 	/* // Inject tracing info into message
 	span := createProducerSpan(ctx, &msg)

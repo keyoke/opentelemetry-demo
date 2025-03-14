@@ -17,13 +17,62 @@ services:
   # ******************
   # Core Demo Services
   # ******************
+  # Fulfillment service
+  fulfillment-dapr:
+    image: "daprio/daprd:edge"
+    container_name: fulfillment-dapr
+    command: ["./daprd",
+     "-app-id", "fulfillment",
+     "-app-port", "${FULFILLMENT_PORT}",
+     "-placement-host-address", "dapr-placement:50006",
+     "-dapr-grpc-port", "50002",
+     "-dapr-http-port", "3500",
+     "-resources-path", "/components"]
+    volumes:
+        - "./components/:/components"
+    depends_on:
+      - fulfillment
+    network_mode: "service:fulfillment"
+
+  fulfillment:
+    image: ${IMAGE_NAME}:${DEMO_VERSION}-fulfillment
+    container_name: fulfillment
+    build:
+      context: ./
+      dockerfile: ${FULFILLMENT_DOCKERFILE}
+      cache_from:
+        - ${IMAGE_NAME}:${IMAGE_VERSION}-fulfillment
+    deploy:
+      resources:
+        limits:
+          memory: 120M
+    restart: unless-stopped
+    environment:
+      - KAFKA_ADDR
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://${OTEL_COLLECTOR_HOST}:${OTEL_COLLECTOR_PORT_HTTP}
+      - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+      - OTEL_RESOURCE_ATTRIBUTES
+      - OTEL_SERVICE_NAME=fulfillment
+      - FULFILLMENT_PORT
+      - ASPNETCORE_URLS=http://*:${FULFILLMENT_PORT}
+      - DAPR_GRPC_PORT=50002
+      - DAPR_HTTP_PORT=3500
+    depends_on:
+      otel-collector:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      dapr-placement:
+        condition: service_started
+    logging: *logging
+
   # Accounting service
   accounting-dapr:
     image: "daprio/daprd:edge"
     container_name: accounting-dapr
     command: ["./daprd",
      "-app-id", "accounting",
-     "-app-port", "5000",
+     "-app-port", "${ACCOUNTING_PORT}",
      "-placement-host-address", "dapr-placement:50006",
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
@@ -108,7 +157,7 @@ services:
     container_name: cart-dapr
     command: ["./daprd",
      "-app-id", "cart",
-     "-app-port", "3000",
+     "-app-port", "${CART_PORT}",
      "-placement-host-address", "dapr-placement:50006",
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
@@ -164,7 +213,7 @@ services:
     container_name: checkout-dapr
     command: ["./daprd",
      "-app-id", "checkout",
-     "-app-port", "3000",
+     "-app-port", "${CHECKOUT_PORT}",
      "-placement-host-address", "dapr-placement:50006",
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
@@ -727,7 +776,7 @@ services:
     volumes:
       - ./src/flagd:/app/data
 
-  # Kafka used by Checkout, Accounting, and Fraud Detection services
+  # Kafka used by Checkout, Accounting, Fulfillment, and Fraud Detection services
   kafka:
     image: ${IMAGE_NAME}:${DEMO_VERSION}-kafka
     container_name: kafka

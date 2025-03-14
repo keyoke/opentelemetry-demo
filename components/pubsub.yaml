@@ -13,10 +13,11 @@ spec:
   - name: disableTls # Optional. Disable TLS. This is not safe for production!! You should read the `Mutual TLS` section for how to use TLS.
     value: "false"
   - name: publishingScopes
-    value: "checkout=orders"
+    value: "checkout=orders,fulfillment=processed-orders"
   - name: subscriptionScopes
-    value: "accounting=orders;fraud-detection=orders"
+    value: "accounting=orders;fraud-detection=orders;fulfillment=orders"
 scopes:
 - accounting
 - checkout
 - fraud-detection
+- fulfillment
