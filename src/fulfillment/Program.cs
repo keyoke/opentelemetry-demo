@@ -1,4 +1,4 @@
-﻿using Fulfillment; 
+﻿using Fulfillment;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -38,8 +38,10 @@ app.UseRouting();
 app.UseCloudEvents();
 app.MapSubscribeHandler();
 
-string PUBSUB_NAME = "pubsub";
-string TOPIC_NAME = "processed-orders";
+var client = new DaprClientBuilder().Build();
+var PUBSUB_NAME = "pubsub";
+var TOPIC_NAME = "processed-orders";
+var tasks = new List<Task>();
 
 app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logger, [FromBody] Stream stream) =>
 {
@@ -55,12 +57,43 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
 
                 Log.OrderReceivedMessage(logger, order);
 
-                CancellationTokenSource source = new CancellationTokenSource();
-                CancellationToken cancellationToken = source.Token;
+                // Very simple workflow to simulate an orders lifcycle
+                var orderTask = new Task(() =>
+                {
+                    logger.LogInformation("Processing order {OrderId}", order.OrderId);
+                    var orderId = order.OrderId;
+                    var orderStatus =  OrderStatus.InProgress;
+                    var taskCompleted = false;
 
-                using var client = new DaprClientBuilder().Build();
-                //Using Dapr SDK to publish a topic
-                await client.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, 1, cancellationToken);
+                    while (!taskCompleted)
+                    {
+                        logger.LogInformation("Order parsing failed:");
+                        switch (orderStatus)
+                        {
+                            case OrderStatus.InProgress:
+                                logger.LogInformation("Order in progress ");
+                                await Task.Delay(5000);
+                                orderStatus = OrderStatus.Picked;
+                                break;
+                            case OrderStatus.Picked:
+                                logger.LogInformation("Order picked");
+                                await Task.Delay(5000);
+                                orderStatus = OrderStatus.Dispatched;
+                                break;
+                            case OrderStatus.Dispatched:
+                                logger.LogInformation("Order dispatched");
+                                await Task.Delay(5000);
+                                orderStatus = OrderStatus.Returned;
+                                break;
+                        }
+                    }
+
+                    // CancellationTokenSource source = new CancellationTokenSource();
+                    // CancellationToken cancellationToken = source.Token;
+                    // await client.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, 1, cancellationToken);
+                });
+                orderTask.Start();
+                tasks.Add(orderTask);
             }
             catch (Exception ex)
             {
@@ -72,4 +105,6 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
 
     return Results.BadRequest();
 });
+
+
 app.Run();
