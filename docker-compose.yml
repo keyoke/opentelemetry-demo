@@ -27,7 +27,8 @@ services:
      "-placement-host-address", "dapr-placement:50006",
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
-     "-resources-path", "/components"]
+     "-resources-path", "/dapr/components",
+     "-config", "/dapr/config.yaml"]
     volumes:
         - "./components/:/components"
     depends_on:
@@ -76,7 +77,8 @@ services:
      "-placement-host-address", "dapr-placement:50006",
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
-     "-resources-path", "/components"]
+     "-resources-path", "/dapr/components",
+     "-config", "/dapr/config.yaml"]
     volumes:
         - "./components/:/components"
     depends_on:
@@ -161,7 +163,8 @@ services:
      "-placement-host-address", "dapr-placement:50006",
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
-     "-resources-path", "/components"]
+     "-resources-path", "/dapr/components",
+     "-config", "/dapr/config.yaml"]
     volumes:
         - "./components/:/components"
     depends_on:
@@ -217,7 +220,8 @@ services:
      "-placement-host-address", "dapr-placement:50006",
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
-     "-resources-path", "/components"]
+     "-resources-path", "/dapr/components",
+     "-config", "/dapr/config.yaml"]
     volumes:
         - "./components/:/components"
     depends_on:
@@ -345,7 +349,8 @@ services:
      "-placement-host-address", "dapr-placement:50006",
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
-     "-resources-path", "/components"]
+     "-resources-path", "/dapr/components",
+     "-config", "/dapr/config.yaml"]
     volumes:
         - "./components/:/components"
     depends_on:
