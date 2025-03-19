@@ -30,7 +30,7 @@ services:
      "-resources-path", "/dapr/components",
      "-config", "/dapr/config.yaml"]
     volumes:
-        - "./components/:/components"
+        - "./dapr/:/dapr"
     depends_on:
       - fulfillment
     network_mode: "service:fulfillment"
@@ -80,7 +80,7 @@ services:
      "-resources-path", "/dapr/components",
      "-config", "/dapr/config.yaml"]
     volumes:
-        - "./components/:/components"
+        - "./dapr/:/dapr"
     depends_on:
       - accounting
     network_mode: "service:accounting"
@@ -166,7 +166,7 @@ services:
      "-resources-path", "/dapr/components",
      "-config", "/dapr/config.yaml"]
     volumes:
-        - "./components/:/components"
+        - "./dapr/:/dapr"
     depends_on:
       - cart
     network_mode: "service:cart"
@@ -223,7 +223,7 @@ services:
      "-resources-path", "/dapr/components",
      "-config", "/dapr/config.yaml"]
     volumes:
-        - "./components/:/components"
+        - "./dapr/:/dapr"
     depends_on:
       - checkout
     network_mode: "service:checkout"
@@ -352,7 +352,7 @@ services:
      "-resources-path", "/dapr/components",
      "-config", "/dapr/config.yaml"]
     volumes:
-        - "./components/:/components"
+        - "./dapr/:/dapr"
     depends_on:
       - fraud-detection
     network_mode: "service:fraud-detection"
