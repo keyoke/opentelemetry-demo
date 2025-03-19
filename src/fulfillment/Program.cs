@@ -98,7 +98,6 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
                             orderStatus = OrderStatus.Completed;
                             break;
                     }
-                    logger.LogInformation($"Order {order.OrderId} completed");
                     // emit an otel span event after each order status transition
                     activity?.AddEvent(new("Fulfillment", DateTimeOffset.Now, new ActivityTagsCollection
                     {
@@ -106,6 +105,7 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
                         { "app.order.status", orderStatus }
                     }));
                 }
+                logger.LogInformation($"Order {order.OrderId} completed");
             }
             catch (Exception ex)
             {
