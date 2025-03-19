@@ -29,11 +29,6 @@ builder.Services.AddHttpLogging(httpLoggingOptions =>
         HttpLoggingFields.ResponseStatusCode |
         HttpLoggingFields.RequestBody;
 });
-// builder.services.AddHostedService<QueuedHostedService>();
-// builder.services.AddSingleton<IBackgroundTaskQueue>(ctx =>
-// {
-//     return new BackgroundTaskQueue(100);
-// });
 
 var app = builder.Build();
 
@@ -61,11 +56,10 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
                 var order = OrderResult.Parser.ParseFrom(bytes);
 
                 Log.OrderReceivedMessage(logger, order);
-                var taskCompleted = false;
                 var orderStatus = OrderStatus.InProgress;
                 var activity = Activity.Current;
 
-                while (!taskCompleted)
+                while (orderStatus != OrderStatus.Completed)
                 {
                     // add a random delay between status transitions
                     await Task.Delay(Random.Shared.Next(10) * 1000);
@@ -74,24 +68,37 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
                     {
                         case OrderStatus.InProgress:
                             logger.LogInformation($"Order {order.OrderId} in progress");
-                            orderStatus = OrderStatus.Picked;
+                            // We want to simulate a XX% of orders picking failed
+                            if (Random.Shared.Next(101) <= 10) // 10% chance
+                            {
+                                orderStatus = OrderStatus.PickingFailed;
+                            }
+                            else
+                                orderStatus = OrderStatus.Picked;
                             break;
                         case OrderStatus.Picked:
                             logger.LogInformation($"Order {order.OrderId} picked");
                             orderStatus = OrderStatus.Dispatched;
                             break;
+                        case OrderStatus.PickingFailed:
+                            logger.LogInformation($"Order {order.OrderId} picking failed");
+                            orderStatus = OrderStatus.Completed;
+                            break;
                         case OrderStatus.Dispatched:
                             logger.LogInformation($"Order {order.OrderId} dispatched");
-                            orderStatus = OrderStatus.Returned;
-                            // CancellationTokenSource source = new CancellationTokenSource();
-                            // CancellationToken cancellationToken = source.Token;
-                            // await client.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, 1, cancellationToken);
+                            await client.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, 1);
+                            // We want to simulate a XX% of orders returned by customers
+                            if (Random.Shared.Next(101) <= 10) // 10% chance
+                                orderStatus = OrderStatus.Returned;
+                            else
+                                orderStatus = OrderStatus.Completed;
                             break;
-                        default:
-                            logger.LogInformation($"Order {order.OrderId} completed");
-                            taskCompleted = true;
+                        case OrderStatus.Returned:
+                            logger.LogInformation($"Order {order.OrderId} returned");
+                            orderStatus = OrderStatus.Completed;
                             break;
                     }
+                    logger.LogInformation($"Order {order.OrderId} completed");
                     // emit an otel span event after each order status transition
                     activity?.AddEvent(new("Fulfillment", DateTimeOffset.Now, new ActivityTagsCollection
                     {

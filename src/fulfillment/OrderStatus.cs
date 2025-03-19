@@ -4,7 +4,9 @@ namespace Fulfillment
     {
         InProgress,
         Picked,
+        PickingFailed,
         Dispatched,
-        Returned
+        Returned,
+        Completed
     }
 }
