@@ -59,6 +59,7 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
                 var orderStatus = OrderStatus.InProgress;
                 var activity = Activity.Current;
 
+                logger.LogInformation($"Order {order.OrderId} fufillment started at '{DateTime.UtcNow}'");
                 while (orderStatus != OrderStatus.Completed)
                 {
                     // add a random delay between status transitions
@@ -102,10 +103,13 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
                     activity?.AddEvent(new("Fulfillment", DateTimeOffset.Now, new ActivityTagsCollection
                     {
                         { "app.order.id", order.OrderId },
+                        { "app.order.items.count", order.Items.Count},
+                        { "app.order.shipping.tracking.id", order.ShippingTrackingId},
+                        { "app.order.shipping.address", order.ShippingAddress},
                         { "app.order.status", orderStatus }
                     }));
                 }
-                logger.LogInformation($"Order {order.OrderId} completed");
+                logger.LogInformation($"Order {order.OrderId} fufillment completed at '{DateTime.UtcNow}'");
             }
             catch (Exception ex)
             {
@@ -117,82 +121,5 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
 
     return Results.BadRequest();
 });
-
-
-async ValueTask BuildWorkItem(ILogger<Program> logger, CancellationToken token, OrderResult order)
-{
-    var guid = Guid.NewGuid().ToString();
-
-    logger.LogInformation("Queued Background Task {Guid} is starting.", guid);
-    logger.LogInformation($"Order {order.OrderId} processing");
-
-    var taskCompleted = false;
-    var orderStatus = OrderStatus.InProgress;
-    var activity = Activity.Current;
-
-    while (!token.IsCancellationRequested &&
-            !taskCompleted)
-    {
-        try
-        {
-            switch (orderStatus)
-            {
-                case OrderStatus.InProgress:
-                    logger.LogInformation($"Order {order.OrderId} in progress");
-                    await Task.Delay(Random.Shared.Next(10) * 1000, token);
-                    orderStatus = OrderStatus.Picked;
-                    // Create span event 
-                    activity?.AddEvent(new("Fulfillment", DateTimeOffset.Now, new ActivityTagsCollection
-                    {
-                        { "OrderStatus", orderStatus }
-                    }));
-                    break;
-                case OrderStatus.Picked:
-                    logger.LogInformation($"Order {order.OrderId} picked");
-                    await Task.Delay(Random.Shared.Next(10) * 1000, token);
-                    orderStatus = OrderStatus.Dispatched;
-                    // Create span event 
-                    activity?.AddEvent(new("Fulfillment", DateTimeOffset.Now, new ActivityTagsCollection
-                    {
-                        { "OrderStatus", orderStatus }
-                    }));
-                    break;
-                case OrderStatus.Dispatched:
-                    logger.LogInformation($"Order {order.OrderId} dispatched");
-                    await Task.Delay(Random.Shared.Next(10) * 1000, token);
-                    orderStatus = OrderStatus.Returned;
-                    // Create span event 
-                    activity?.AddEvent(new("Fulfillment", DateTimeOffset.Now, new ActivityTagsCollection
-                    {
-                        { "OrderStatus", orderStatus }
-                    }));
-                    break;
-                default:
-                    logger.LogInformation($"Order {order.OrderId} completed");
-                    // Create span event 
-                    activity?.AddEvent(new("Fulfillment", DateTimeOffset.Now, new ActivityTagsCollection
-                    {
-                        { "OrderStatus", orderStatus }
-                    }));
-                    taskCompleted = true;
-                    break;
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Prevent throwing if the Delay is cancelled
-        }
-        logger.LogInformation("Queued Background Task {Guid} is running. ", guid);
-    }
-
-    if (taskCompleted)
-    {
-        logger.LogInformation("Queued Background Task {Guid} is complete.", guid);
-    }
-    else
-    {
-        logger.LogInformation("Queued Background Task {Guid} was cancelled.", guid);
-    }
-}
 
 app.Run();
