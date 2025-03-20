@@ -42,7 +42,7 @@ app.UseCloudEvents();
 
 app.MapSubscribeHandler();
 
-app.MapPost("/orders", [Topic("pubsub", "orders")] (ILogger<Program> logger, [FromBody] Stream stream) =>
+app.MapPost("/orders", [Topic("pubsub-kafka", "orders")] (ILogger<Program> logger, [FromBody] Stream stream) =>
 {
     if (stream is not null &&
         stream is MemoryStream)

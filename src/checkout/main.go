@@ -58,7 +58,7 @@ var tracer trace.Tracer
 var resource *sdkresource.Resource
 var initResourcesOnce sync.Once
 var (
-	PUBSUB_NAME = "pubsub"
+	PUBSUB_NAME = "pubsub-kafka"
 	TOPIC_NAME  = "orders"
 )
 
@@ -498,6 +498,7 @@ func (cs *checkout) shipOrder(ctx context.Context, address *pb.Address, items []
 
 func (cs *checkout) sendToPostProcessor(ctx context.Context, result *pb.OrderResult) {
 	message, err := proto.Marshal(result)
+
 	if err != nil {
 		log.Errorf("Failed to marshal message to protobuf: %+v", err)
 		return

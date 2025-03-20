@@ -40,10 +40,10 @@ app.UseCloudEvents();
 app.MapSubscribeHandler();
 
 var client = new DaprClientBuilder().Build();
-var PUBSUB_NAME = "pubsub";
+var PUBSUB_NAME = "pubsub-kafka";
 var TOPIC_NAME = "processed-orders";
 
-app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logger, [FromBody] Stream stream) =>
+app.MapPost("/orders", [Topic("pubsub-kafka", "orders")] async (ILogger<Program> logger, [FromBody] Stream stream) =>
 {
     if (stream is not null &&
         stream is MemoryStream)
@@ -68,7 +68,7 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
                     switch (orderStatus)
                     {
                         case OrderStatus.InProgress:
-                            logger.LogInformation($"Order {order.OrderId} in progress");
+                            logger.LogInformation($"Order {order.OrderId} in progress at '{DateTime.UtcNow}'");
                             // We want to simulate a XX% of orders picking failed
                             if (Random.Shared.Next(101) <= 10) // 10% chance
                             {
@@ -78,15 +78,15 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
                                 orderStatus = OrderStatus.Picked;
                             break;
                         case OrderStatus.Picked:
-                            logger.LogInformation($"Order {order.OrderId} picked");
+                            logger.LogInformation($"Order {order.OrderId} picked at '{DateTime.UtcNow}'");
                             orderStatus = OrderStatus.Dispatched;
                             break;
                         case OrderStatus.PickingFailed:
-                            logger.LogInformation($"Order {order.OrderId} picking failed");
+                            logger.LogInformation($"Order {order.OrderId} picking failed at '{DateTime.UtcNow}'");
                             orderStatus = OrderStatus.Completed;
                             break;
                         case OrderStatus.Dispatched:
-                            logger.LogInformation($"Order {order.OrderId} dispatched");
+                            logger.LogInformation($"Order {order.OrderId} dispatched at '{DateTime.UtcNow}'");
                             await client.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, 1);
                             // We want to simulate a XX% of orders returned by customers
                             if (Random.Shared.Next(101) <= 10) // 10% chance
@@ -95,7 +95,7 @@ app.MapPost("/orders", [Topic("pubsub", "orders")] async (ILogger<Program> logge
                                 orderStatus = OrderStatus.Completed;
                             break;
                         case OrderStatus.Returned:
-                            logger.LogInformation($"Order {order.OrderId} returned");
+                            logger.LogInformation($"Order {order.OrderId} returned at '{DateTime.UtcNow}'");
                             orderStatus = OrderStatus.Completed;
                             break;
                     }
