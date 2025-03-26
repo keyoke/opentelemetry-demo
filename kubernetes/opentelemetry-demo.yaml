@@ -9528,6 +9528,12 @@ spec:
         app.kubernetes.io/instance: opentelemetry-demo
         app.kubernetes.io/component: accountingservice
         app.kubernetes.io/name: opentelemetry-demo-accountingservice
+       
+      annotations:
+
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "accounting"
+        dapr.io/app-port: "4040" 
     spec:
       serviceAccountName: opentelemetry-demo
       containers:
@@ -9658,6 +9664,12 @@ spec:
         app.kubernetes.io/instance: opentelemetry-demo
         app.kubernetes.io/component: cartservice
         app.kubernetes.io/name: opentelemetry-demo-cartservice
+
+      annotations:
+
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "cart"
+        dapr.io/app-port: "8080"
     spec:
       serviceAccountName: opentelemetry-demo
       containers:
@@ -9734,6 +9746,12 @@ spec:
         app.kubernetes.io/instance: opentelemetry-demo
         app.kubernetes.io/component: checkoutservice
         app.kubernetes.io/name: opentelemetry-demo-checkoutservice
+
+      annotations:
+
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "checkout"
+        dapr.io/app-port: "8080" 
     spec:
       serviceAccountName: opentelemetry-demo
       containers:
@@ -10057,6 +10075,12 @@ spec:
         app.kubernetes.io/instance: opentelemetry-demo
         app.kubernetes.io/component: frauddetectionservice
         app.kubernetes.io/name: opentelemetry-demo-frauddetectionservice
+
+      annotations:
+
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "frauddetection"
+        dapr.io/app-port: "8080" 
     spec:
       serviceAccountName: opentelemetry-demo
       containers:
