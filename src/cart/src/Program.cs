@@ -19,10 +19,10 @@ using OpenFeature.Contrib.Providers.Flagd;
 using OpenFeature.Contrib.Hooks.Otel;
 
 var builder = WebApplication.CreateBuilder(args);
-string valkeyAddress = builder.Configuration["VALKEY_ADDR"];
-if (string.IsNullOrEmpty(valkeyAddress))
+string daprCartStateStore = builder.Configuration["DAPR_CART_STATE_STORE"];
+if (string.IsNullOrEmpty(daprCartStateStore))
 {
-    Console.WriteLine("VALKEY_ADDR environment variable is required.");
+    Console.WriteLine("DAPR_CART_STATE_STORE environment variable is required.");
     Environment.Exit(1);
 }
 
@@ -32,7 +32,7 @@ builder.Logging
 
 builder.Services.AddSingleton<ICartStore>(x=>
 {
-    var store = new DaprStateManagementCartStore(x.GetRequiredService<ILogger<DaprStateManagementCartStore>>(), "cart-state-store");
+    var store = new DaprStateManagementCartStore(x.GetRequiredService<ILogger<DaprStateManagementCartStore>>(), daprCartStateStore);
     store.Initialize();
     return store;
 });

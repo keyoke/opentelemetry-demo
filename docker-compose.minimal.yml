@@ -70,7 +70,7 @@ services:
     environment:
       - CART_PORT
       - FLAGD_HOST
-      - VALKEY_ADDR
+      - DAPR_CART_STATE_STORE
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=cart

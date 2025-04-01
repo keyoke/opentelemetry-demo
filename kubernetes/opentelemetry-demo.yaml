@@ -9694,8 +9694,8 @@ spec:
               value: "8080"
             - name: ASPNETCORE_URLS
               value: http://*:$(CART_SERVICE_PORT)
-            - name: VALKEY_ADDR
-              value: 'opentelemetry-demo-valkey:6379'
+            - name: DAPR_CART_STATE_STORE
+              value: 'cart-state-store'
             - name: FLAGD_HOST
               value: 'opentelemetry-demo-flagd'
             - name: FLAGD_PORT
