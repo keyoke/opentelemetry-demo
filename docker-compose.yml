@@ -49,7 +49,6 @@ services:
           memory: 120M
     restart: unless-stopped
     environment:
-      - KAFKA_ADDR
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://${OTEL_COLLECTOR_HOST}:${OTEL_COLLECTOR_PORT_HTTP}
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - OTEL_RESOURCE_ATTRIBUTES
@@ -61,8 +60,6 @@ services:
     depends_on:
       otel-collector:
         condition: service_started
-      kafka:
-        condition: service_healthy
       dapr-placement:
         condition: service_started
     logging: *logging
@@ -99,7 +96,6 @@ services:
           memory: 120M
     restart: unless-stopped
     environment:
-      - KAFKA_ADDR
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://${OTEL_COLLECTOR_HOST}:${OTEL_COLLECTOR_PORT_HTTP}
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - OTEL_RESOURCE_ATTRIBUTES
@@ -111,8 +107,6 @@ services:
     depends_on:
       otel-collector:
         condition: service_started
-      kafka:
-        condition: service_healthy
       dapr-placement:
         condition: service_started
     logging: *logging
@@ -251,7 +245,6 @@ services:
       - PAYMENT_ADDR
       - PRODUCT_CATALOG_ADDR
       - SHIPPING_ADDR
-      - KAFKA_ADDR
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - OTEL_RESOURCE_ATTRIBUTES
@@ -273,8 +266,6 @@ services:
         condition: service_started
       otel-collector:
         condition: service_started
-      kafka:
-        condition: service_healthy
       flagd:
         condition: service_started
       dapr-placement:
