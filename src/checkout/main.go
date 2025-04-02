@@ -58,7 +58,7 @@ var tracer trace.Tracer
 var resource *sdkresource.Resource
 var initResourcesOnce sync.Once
 var (
-	PUBSUB_NAME = "pubsub-kafka"
+	PUBSUB_NAME = "orders-pubsub"
 	TOPIC_NAME  = "orders"
 )
 

@@ -40,10 +40,8 @@ app.UseCloudEvents();
 app.MapSubscribeHandler();
 
 var client = new DaprClientBuilder().Build();
-var PUBSUB_NAME = "pubsub-kafka";
-var TOPIC_NAME = "processed-orders";
 
-app.MapPost("/orders", [Topic("pubsub-kafka", "orders")] async (ILogger<Program> logger, [FromBody] Stream stream) =>
+app.MapPost("/orders", [Topic("orders-pubsub", "orders")] async (ILogger<Program> logger, [FromBody] Stream stream) =>
 {
     if (stream is not null &&
         stream is MemoryStream)
@@ -87,7 +85,6 @@ app.MapPost("/orders", [Topic("pubsub-kafka", "orders")] async (ILogger<Program>
                             break;
                         case OrderStatus.Dispatched:
                             logger.LogInformation($"Order {order.OrderId} dispatched at '{DateTime.UtcNow}'");
-                            await client.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, 1);
                             // We want to simulate a XX% of orders returned by customers
                             if (Random.Shared.Next(101) <= 10) // 10% chance
                                 orderStatus = OrderStatus.Returned;
