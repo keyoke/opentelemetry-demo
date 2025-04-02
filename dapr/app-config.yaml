@@ -1,13 +1,13 @@
 apiVersion: dapr.io/v1alpha1
 kind: Configuration
 metadata:
-  name: tracing-config
+  name: app-config
   namespace: default
 spec:
   tracing:
     samplingRate: "1"
     stdout: true
     otel:
-      endpointAddress: "otel-gateway-collector.astroshop.svc.cluster.local:4317"
+      endpointAddress: "otel-gateway-collector:4317"  # otel-gateway-collector.astroshop.svc.cluster.local
       isSecure: false
       protocol: grpc 

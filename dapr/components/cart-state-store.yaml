@@ -7,7 +7,7 @@ spec:
   version: v1
   metadata:
   - name: redisHost
-    value: valkey-cart:6379
+    value: valkey-cart:6379 # valkey-cart.astroshop.svc.cluster.local
   - name: redisPassword
     value: ""
   - name: enableTLS

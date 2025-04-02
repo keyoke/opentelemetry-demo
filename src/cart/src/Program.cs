@@ -19,12 +19,6 @@ using OpenFeature.Contrib.Providers.Flagd;
 using OpenFeature.Contrib.Hooks.Otel;
 
 var builder = WebApplication.CreateBuilder(args);
-string daprCartStateStore = builder.Configuration["DAPR_CART_STATE_STORE"];
-if (string.IsNullOrEmpty(daprCartStateStore))
-{
-    Console.WriteLine("DAPR_CART_STATE_STORE environment variable is required.");
-    Environment.Exit(1);
-}
 
 builder.Logging
     .AddOpenTelemetry(options => options.AddOtlpExporter())
@@ -32,7 +26,7 @@ builder.Logging
 
 builder.Services.AddSingleton<ICartStore>(x=>
 {
-    var store = new DaprStateManagementCartStore(x.GetRequiredService<ILogger<DaprStateManagementCartStore>>(), daprCartStateStore);
+    var store = new DaprStateManagementCartStore(x.GetRequiredService<ILogger<DaprStateManagementCartStore>>(), "cart-state-store");
     store.Initialize();
     return store;
 });

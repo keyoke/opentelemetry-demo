@@ -28,7 +28,7 @@ services:
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
      "-resources-path", "/dapr/components",
-     "-config", "/dapr/config.yaml"]
+     "-config", "/dapr/app-config.yaml"]
     volumes:
         - "./dapr/:/dapr"
     depends_on:
@@ -78,7 +78,7 @@ services:
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
      "-resources-path", "/dapr/components",
-     "-config", "/dapr/config.yaml"]
+     "-config", "/dapr/app-config.yaml"]
     volumes:
         - "./dapr/:/dapr"
     depends_on:
@@ -164,7 +164,7 @@ services:
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
      "-resources-path", "/dapr/components",
-     "-config", "/dapr/config.yaml"]
+     "-config", "/dapr/app-config.yaml"]
     volumes:
         - "./dapr/:/dapr"
     depends_on:
@@ -192,7 +192,6 @@ services:
       - CART_PORT
       - FLAGD_HOST
       - FLAGD_PORT
-      - DAPR_CART_STATE_STORE
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=cart
@@ -200,8 +199,6 @@ services:
       - DAPR_GRPC_PORT=50002
       - DAPR_HTTP_PORT=3500
     depends_on:
-      valkey-cart:
-        condition: service_started
       otel-collector:
         condition: service_started
       flagd:
@@ -221,7 +218,7 @@ services:
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
      "-resources-path", "/dapr/components",
-     "-config", "/dapr/config.yaml"]
+     "-config", "/dapr/app-config.yaml"]
     volumes:
         - "./dapr/:/dapr"
     depends_on:
@@ -350,7 +347,7 @@ services:
      "-dapr-grpc-port", "50002",
      "-dapr-http-port", "3500",
      "-resources-path", "/dapr/components",
-     "-config", "/dapr/config.yaml"]
+     "-config", "/dapr/app-config.yaml"]
     volumes:
         - "./dapr/:/dapr"
     depends_on:

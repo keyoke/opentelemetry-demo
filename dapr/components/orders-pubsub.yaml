@@ -1,19 +1,19 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: pubsub-kafka
+  name: orders-pubsub
 spec:
   type: pubsub.kafka
   version: v1
   metadata:
   - name: brokers # Required. Kafka broker connection setting
-    value: "kafka:9092"
+    value: "kafka:9092" # kafka.astroshop.svc.cluster.local
   - name: authType # Required.
     value: "none"
   - name: disableTls # Optional. Disable TLS. This is not safe for production!! You should read the `Mutual TLS` section for how to use TLS.
     value: "false"
   - name: publishingScopes
-    value: "checkout=orders,fulfillment=processed-orders"
+    value: "checkout=orders"
   - name: subscriptionScopes
     value: "accounting=orders;fraud-detection=orders;fulfillment=orders"
 scopes:
