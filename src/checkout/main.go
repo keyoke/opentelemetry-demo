@@ -132,7 +132,6 @@ type checkout struct {
 	shippingSvcAddr       string
 	emailSvcAddr          string
 	paymentSvcAddr        string
-	kafkaBrokerSvcAddr    string
 	pb.UnimplementedCheckoutServiceServer
 	daprClient              dapr.Client
 	shippingSvcClient       pb.ShippingServiceClient
@@ -203,15 +202,11 @@ func main() {
 	svc.paymentSvcClient = pb.NewPaymentServiceClient(c)
 	defer c.Close()
 
-	svc.kafkaBrokerSvcAddr = os.Getenv("KAFKA_ADDR")
-
-	if svc.kafkaBrokerSvcAddr != "" {
-		svc.daprClient, err = dapr.NewClient()
-		if err != nil {
-			log.Fatal(err)
-		}
-		//defer svc.daprClient.Close()
+	svc.daprClient, err = dapr.NewClient()
+	if err != nil {
+		log.Fatal(err)
 	}
+	//defer svc.daprClient.Close()
 
 	log.Infof("service config: %+v", svc)
 
@@ -323,11 +318,8 @@ func (cs *checkout) PlaceOrder(ctx context.Context, req *pb.PlaceOrderRequest) (
 		log.Infof("order confirmation email sent to %q", req.Email)
 	}
 
-	// send to kafka only if kafka broker address is set
-	if cs.kafkaBrokerSvcAddr != "" {
-		log.Infof("sending to postProcessor")
-		cs.sendToPostProcessor(ctx, orderResult)
-	}
+	log.Infof("sending to postProcessor")
+	cs.sendToPostProcessor(ctx, orderResult)
 
 	resp := &pb.PlaceOrderResponse{Order: orderResult}
 	return resp, nil
