@@ -119,7 +119,7 @@ app.MapPost("/orders", [Topic("orders-pubsub", "orders")] async (ILogger<Program
                                         source = "fulfillment",
                                         type = cloudEventType,
                                         time = DateTime.UtcNow.ToString("o"),
-                                        data = new { order = order, status = orderStatus }
+                                        data = new { order = order, status = orderStatus.ToString() }
                                     };
                                     var response = await httpClient.PostAsJsonAsync($"http://localhost:3500/v1.0/invoke/fulfillment-endpoint/method/{daprEndpointApiMethod}", cloudEvent);
                                     if (!response.IsSuccessStatusCode)
