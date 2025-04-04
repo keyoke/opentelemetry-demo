@@ -1,0 +1,13 @@
+apiVersion: dapr.io/v1alpha1
+kind: HTTPEndpoint
+metadata:
+  name: fulfillment-endpoint
+spec:
+  baseUrl: https://izs31363.dev.dynatracelabs.com
+  headers:
+  - name: "Content-Type"
+    value: "application/cloudevent+json"
+  - name: "Authorization"
+    secretKeyRef:
+      name: fulfillment-endpoint-secret
+      key: authorizationHeader

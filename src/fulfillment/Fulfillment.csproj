@@ -10,7 +10,8 @@
 
 	<ItemGroup>
   	<PackageReference Include="CloudNative.CloudEvents.AspNetCore" Version="2.7.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.2" />
+  	<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.3" />
 		<PackageReference Include="Google.Protobuf" Version="3.29.3" />
     <PackageReference Include="Grpc.Tools" Version="2.68.1">
 			<PrivateAssets>all</PrivateAssets>
@@ -18,8 +19,9 @@
 		</PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 	<PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.10.0" />
-		<PackageReference Include="Dapr.Client" Version="1.13.1" />
-		<PackageReference Include="Dapr.AspNetCore" Version="1.13.*-*" />
+		<PackageReference Include="Dapr.Client" Version="1.15.*" />
+		<PackageReference Include="Dapr.AspNetCore" Version="1.15.*-*" />
+		<PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

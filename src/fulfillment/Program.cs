@@ -21,6 +21,7 @@ Environment.GetEnvironmentVariables()
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+builder.Services.AddHttpClient();
 builder.Services.AddHttpLogging(httpLoggingOptions =>
 {
     httpLoggingOptions.LoggingFields =
@@ -39,9 +40,22 @@ app.UseRouting();
 app.UseCloudEvents();
 app.MapSubscribeHandler();
 
+var daprEndpointApiMethod = Environment.GetEnvironmentVariable("FULFILLMENT_DAPR_ENDPOINT_API_METHOD");
+if (string.IsNullOrEmpty(daprEndpointApiMethod))
+{
+    Console.WriteLine("FULFILLMENT_DAPR_ENDPOINT_API_METHOD environment variable is required.");
+    Environment.Exit(1);
+}
+var cloudEventType = Environment.GetEnvironmentVariable("FULFILLMENT_CLOUD_EVENT_TYPE");
+if (string.IsNullOrEmpty(cloudEventType))
+{
+    Console.WriteLine("FULFILLMENT_CLOUD_EVENT_TYPE environment variable is required.");
+    Environment.Exit(1);
+}
+
 var client = new DaprClientBuilder().Build();
 
-app.MapPost("/orders", [Topic("orders-pubsub", "orders")] async (ILogger<Program> logger, [FromBody] Stream stream) =>
+app.MapPost("/orders", [Topic("orders-pubsub", "orders")] async (ILogger<Program> logger, IHttpClientFactory httpClientFactory, [FromBody] Stream stream) =>
 {
     if (stream is not null &&
         stream is MemoryStream)
@@ -51,6 +65,7 @@ app.MapPost("/orders", [Topic("orders-pubsub", "orders")] async (ILogger<Program
         {
             try
             {
+
                 var order = OrderResult.Parser.ParseFrom(bytes);
 
                 Log.OrderReceivedMessage(logger, order);
@@ -89,7 +104,34 @@ app.MapPost("/orders", [Topic("orders-pubsub", "orders")] async (ILogger<Program
                             if (Random.Shared.Next(101) <= 10) // 10% chance
                                 orderStatus = OrderStatus.Returned;
                             else
+                            {
+                                // Set the completed status
                                 orderStatus = OrderStatus.Completed;
+                                try
+                                {
+                                    // Finally trigger webhook callback
+                                    logger.LogInformation("Initiate webhook callback.");
+                                    using HttpClient httpClient = httpClientFactory.CreateClient();
+                                    var cloudEvent = new
+                                    {
+                                        specversion = "1.0",
+                                        id = Guid.NewGuid().ToString(),
+                                        source = "fulfillment",
+                                        type = cloudEventType,
+                                        time = DateTime.UtcNow.ToString("o"),
+                                        data = new { order = order, status = orderStatus }
+                                    };
+                                    var response = await httpClient.PostAsJsonAsync($"http://localhost:3500/v1.0/invoke/fulfillment-endpoint/method/{daprEndpointApiMethod}", cloudEvent);
+                                    if (!response.IsSuccessStatusCode)
+                                    {
+                                        logger.LogError($"Webhook callback failed with status code {response.StatusCode}");
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    logger.LogError("Webhook callback failed:", ex);
+                                }
+                            }
                             break;
                         case OrderStatus.Returned:
                             logger.LogInformation($"Order {order.OrderId} returned at '{DateTime.UtcNow}'");
