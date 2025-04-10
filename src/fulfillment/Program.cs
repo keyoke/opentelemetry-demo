@@ -46,6 +46,12 @@ if (string.IsNullOrEmpty(daprEndpointApiMethod))
     Console.WriteLine("FULFILLMENT_DAPR_ENDPOINT_API_METHOD environment variable is required.");
     Environment.Exit(1);
 }
+var cloudEventSource = Environment.GetEnvironmentVariable("FULFILLMENT_CLOUD_EVENT_SOURCE");
+if (string.IsNullOrEmpty(cloudEventSource))
+{
+    Console.WriteLine("FULFILLMENT_CLOUD_EVENT_SOURCE environment variable is required.");
+    Environment.Exit(1);
+}
 var cloudEventType = Environment.GetEnvironmentVariable("FULFILLMENT_CLOUD_EVENT_TYPE");
 if (string.IsNullOrEmpty(cloudEventType))
 {
@@ -116,10 +122,17 @@ app.MapPost("/orders", [Topic("orders-pubsub", "orders")] async (ILogger<Program
                                     {
                                         specversion = "1.0",
                                         id = Guid.NewGuid().ToString(),
-                                        source = "fulfillment",
+                                        source = cloudEventSource,
                                         type = cloudEventType,
                                         time = DateTime.UtcNow.ToString("o"),
-                                        data = new { order = order, status = orderStatus.ToString() }
+                                        data = new { OrderId = order.OrderId, 
+                                                        ShippingTrackingId = order.ShippingTrackingId, 
+                                                        StreetAddress = order.ShippingAddress.StreetAddress,
+                                                        City = order.ShippingAddress.City, 
+                                                        State = order.ShippingAddress.State,
+                                                        Country = order.ShippingAddress.Country,
+                                                        ZipCode = order.ShippingAddress.ZipCode,
+                                                        status = orderStatus.ToString() }
                                     };
                                     var response = await httpClient.PostAsJsonAsync($"http://localhost:3500/v1.0/invoke/fulfillment-endpoint/method/{daprEndpointApiMethod}", cloudEvent);
                                     if (!response.IsSuccessStatusCode)
