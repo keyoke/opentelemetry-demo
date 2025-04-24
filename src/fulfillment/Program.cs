@@ -123,15 +123,15 @@ app.MapPost("/orders", [Topic("orders-pubsub", "orders")] async (ILogger<Program
                                         specversion = "1.0",
                                         id = Guid.NewGuid().ToString(),
                                         source = cloudEventSource,
-                                        type = cloudEventType,
+                                        type = $"{cloudEventType}.Completed",
                                         time = DateTime.UtcNow.ToString("o"),
-                                        data = new { OrderId = order.OrderId, 
-                                                        ShippingTrackingId = order.ShippingTrackingId, 
-                                                        StreetAddress = order.ShippingAddress.StreetAddress,
-                                                        City = order.ShippingAddress.City, 
-                                                        State = order.ShippingAddress.State,
-                                                        Country = order.ShippingAddress.Country,
-                                                        ZipCode = order.ShippingAddress.ZipCode,
+                                        data = new { orderId = order.OrderId, 
+                                                        shippingTrackingId = order.ShippingTrackingId, 
+                                                        streetAddress = order.ShippingAddress.StreetAddress,
+                                                        city = order.ShippingAddress.City, 
+                                                        state = order.ShippingAddress.State,
+                                                        country = order.ShippingAddress.Country,
+                                                        zipCode = order.ShippingAddress.ZipCode,
                                                         status = orderStatus.ToString() }
                                     };
                                     var response = await httpClient.PostAsJsonAsync($"http://localhost:3500/v1.0/invoke/fulfillment-endpoint/method/{daprEndpointApiMethod}", cloudEvent);
