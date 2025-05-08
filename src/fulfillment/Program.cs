@@ -125,14 +125,17 @@ app.MapPost("/orders", [Topic("orders-pubsub", "orders")] async (ILogger<Program
                                         source = cloudEventSource,
                                         type = $"{cloudEventType}.Completed",
                                         time = DateTime.UtcNow.ToString("o"),
-                                        data = new { orderId = order.OrderId, 
-                                                        shippingTrackingId = order.ShippingTrackingId, 
-                                                        streetAddress = order.ShippingAddress.StreetAddress,
-                                                        city = order.ShippingAddress.City, 
-                                                        state = order.ShippingAddress.State,
-                                                        country = order.ShippingAddress.Country,
-                                                        zipCode = order.ShippingAddress.ZipCode,
-                                                        status = orderStatus.ToString() }
+                                        data = new
+                                        {
+                                            orderId = order.OrderId,
+                                            shippingTrackingId = order.ShippingTrackingId,
+                                            streetAddress = order.ShippingAddress.StreetAddress,
+                                            city = order.ShippingAddress.City,
+                                            state = order.ShippingAddress.State,
+                                            country = order.ShippingAddress.Country,
+                                            zipCode = order.ShippingAddress.ZipCode,
+                                            status = orderStatus.ToString()
+                                        }
                                     };
                                     var response = await httpClient.PostAsJsonAsync($"http://localhost:3500/v1.0/invoke/fulfillment-endpoint/method/{daprEndpointApiMethod}", cloudEvent);
                                     if (!response.IsSuccessStatusCode)
@@ -151,15 +154,23 @@ app.MapPost("/orders", [Topic("orders-pubsub", "orders")] async (ILogger<Program
                             orderStatus = OrderStatus.Completed;
                             break;
                     }
+                    var eventData = new ActivityEvent(
+                         "Fulfillment",
+                         DateTimeOffset.Now,
+                         new ActivityTagsCollection
+                     {
+                         { "app.order.id", order.OrderId },
+                         { "app.order.items.count", order.Items.Count},
+                         { "app.order.shipping.tracking.id", order.ShippingTrackingId},
+                         { "app.order.shipping.address", order.ShippingAddress},
+                         { "app.order.status", orderStatus }
+                     });
+
                     // emit an otel span event after each order status transition
-                    activity?.AddEvent(new("Fulfillment", DateTimeOffset.Now, new ActivityTagsCollection
-                    {
-                        { "app.order.id", order.OrderId },
-                        { "app.order.items.count", order.Items.Count},
-                        { "app.order.shipping.tracking.id", order.ShippingTrackingId},
-                        { "app.order.shipping.address", order.ShippingAddress},
-                        { "app.order.status", orderStatus }
-                    }));
+                    activity?.AddEvent(eventData);
+
+                    // also log the event
+                    logger.LogInformation("Order fulfillment step executed.", eventData);
                 }
                 logger.LogInformation($"Order {order.OrderId} fufillment completed at '{DateTime.UtcNow}'");
             }
